@@ -71,4 +71,6 @@
     adt.is = function(type, inst) {
         return inst.ctor.type === type;
     };
+
+    return adt;
 }));
