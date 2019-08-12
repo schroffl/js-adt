@@ -20,8 +20,8 @@
         // Otherwise the ctor of an instance would always refer
         // to the last declared ctor of the type.
         function makeCtor() {
-            var ctor = function() {
-                return { ctor: ctor, args: arguments };
+            var ctor = function(arg) {
+                return { ctor: ctor, arg: arg };
             };
 
             return ctor;
@@ -37,40 +37,33 @@
         return obj;
     }
 
-    adt.other = {};
+    var otherwise = {};
 
-    adt.match = function(ctor, fn) {
-        var ctx = this;
+    function match(matchers) {
+        return function(inst, fnCtx) {
+            for (var i = 0; i < matchers.length; i++) {
+                var matcher = matchers[i];
 
-        if (!ctx.type || !ctx.matchers) {
-            ctx = { type: ctor.type, matchers: [] };
-        } else if (ctx.type !== ctor.type) {
-            // TODO This should cause an error
-        }
-
-        ctx.matchers.push({ ctor: ctor, fn: fn });
-
-        return {
-            match: adt.match.bind(ctx),
-            of: function(inst, fnCtx) {
-                if (ctx.type !== inst.ctor.type) {
-                    // TODO This should cause an error
-                }
-
-                for (var i = 0; i < ctx.matchers.length; i++) {
-                    var matcher = ctx.matchers[i];
-
-                    if (inst.ctor === matcher.ctor || matcher.ctor === adt.other) {
-                        return matcher.fn.apply(fnCtx, inst.args);
-                    }
+                if (inst.ctor === matcher.ctor || matcher.ctor === otherwise) {
+                    return matcher.fn.call(fnCtx, inst.arg);
                 }
             }
         };
-    };
+    }
 
-    adt.is = function(type, inst) {
+    function when(ctor, fn) {
+        return { ctor: ctor, fn: fn };
+    }
+
+    function is(type, inst) {
         return inst.ctor.type === type;
-    };
+    }
 
-    return adt;
+    return {
+        create: adt,
+        match: match,
+        when: when,
+        otherwise: otherwise,
+        is: is,
+    };
 }));
