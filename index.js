@@ -59,11 +59,19 @@
         return inst.ctor.type === type;
     }
 
+    function stringify(inst, indentation) {
+        if (indentation === undefined)
+            indentation = 4;
+
+        return inst.ctor.name + ' ' + JSON.stringify(inst.arg, null, indentation);
+    }
+
     return {
         create: adt,
         match: match,
         when: when,
         otherwise: otherwise,
+        stringify: stringify,
         is: is,
     };
 }));
